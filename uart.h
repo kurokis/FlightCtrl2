@@ -8,8 +8,8 @@
 
 #define UART_RX_BUFFER_LENGTH_POWER_OF_2 (6)  // 2^6 = 64
 #define UART_RX_BUFFER_LENGTH (1 << UART_RX_BUFFER_LENGTH_POWER_OF_2)
-#define UART_TX_BUFFER_LENGTH (103)
-#define UART_DATA_BUFFER_LENGTH (70)
+#define UART_TX_BUFFER_LENGTH (196) // 103
+#define UART_DATA_BUFFER_LENGTH (196) // 70
 #define UARTPrintf(format, ...) UARTPrintf_P(PSTR(format),##__VA_ARGS__)
 #define UARTPrintfSafe(format, ...) UARTPrintfSafe_P(PSTR(format),##__VA_ARGS__)
 

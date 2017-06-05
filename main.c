@@ -134,7 +134,7 @@ static void Init(void)
   DetectMotors();
   ControlInit();  // Must be run after DetectMotors() to get NMotors()
 
-  NavCommsInit();
+  //NavCommsInit();
   IndicatorInit();
 
   ResetOverrun();
@@ -260,7 +260,7 @@ int16_t main(void)
 
       ErrorCheck();
 
-      NotifyNav();
+      //NotifyNav();
       ProcessIncomingUART();
       SendPendingUART();
 
@@ -269,12 +269,9 @@ int16_t main(void)
       flag_128hz_ = 0;
     }
 
-    if (NavDataReady()) ExchangeDataWithNav();
-
-    if (NavRecieved()) ProcessDataFromNav();
-
     if (flag_64hz_)
     {
+      SendDataToNav();
       flag_64hz_ = 0;
     }
 

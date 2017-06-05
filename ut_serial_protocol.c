@@ -91,7 +91,8 @@ void UTSerialTx(uint8_t id, const uint8_t * source, uint8_t length)
 
   // Compute the CRC (starting from payload length) and copy to the TX buffer.
   union U16Bytes crc = { 0xFFFF };
-  for(uint8_t i = 1; i < length + UT_HEADER_LENGTH; ++i)
+  //for(uint8_t i = 1; i < length + UT_HEADER_LENGTH; ++i)
+  for(uint8_t i = 1; i < length + UT_HEADER_LENGTH; i++)
     crc.u16 = _crc_ccitt_update(crc.u16, tx_buffer[i]);
   *tx_ptr++ = crc.bytes[0];
   *tx_ptr = crc.bytes[1];
