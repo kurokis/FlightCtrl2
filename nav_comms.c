@@ -18,6 +18,7 @@
 #include "union_types.h"
 #include "vertical_speed.h"
 
+#include "motors.h"
 
 // =============================================================================
 // Private data:
@@ -156,6 +157,11 @@ void SendDataToNav(void)
 
   // Specify the payload structure.
   struct ToNav {
+#ifdef DEBUG
+    uint16_t motor_setpoint[4];
+    float accelerometer[3];
+    float gyro[3];
+#else
     uint16_t timestamp;
     uint8_t nav_mode_request;
     uint8_t state;
@@ -163,25 +169,24 @@ void SendDataToNav(void)
     float gyro[3];
     float quaternion[4];
     float pressure_altitude;
-#ifdef LOG_FLT_CTRL_DEBUG_TO_SD
-    int16_t sbus_pitch;
-    int16_t sbus_roll;
-    int16_t sbus_yaw;
-    int16_t sbus_thrust;
-    uint16_t battery_voltage;
-    float thrust_command;
-    float heading_command;
-    float angular_command[3];
-    float kalman_p_dot;
-    float kalman_q_dot;
-    float vertical_speed;
-    float vertical_acceleration;
 #endif
   } __attribute__((packed)) to_nav_;
 
   struct ToNav * to_nav_ptr;
   to_nav_ptr = &to_nav_;
 
+#ifdef DEBUG
+  to_nav_ptr->motor_setpoint[0] = MotorSetpoint(0);
+  to_nav_ptr->motor_setpoint[1] = MotorSetpoint(1);
+  to_nav_ptr->motor_setpoint[2] = MotorSetpoint(2);
+  to_nav_ptr->motor_setpoint[3] = MotorSetpoint(3);
+  to_nav_ptr->accelerometer[0] = Acceleration(X_BODY_AXIS);
+  to_nav_ptr->accelerometer[1] = Acceleration(Y_BODY_AXIS);
+  to_nav_ptr->accelerometer[2] = Acceleration(Z_BODY_AXIS);
+  to_nav_ptr->gyro[0] = AngularRate(X_BODY_AXIS);
+  to_nav_ptr->gyro[1] = AngularRate(Y_BODY_AXIS);
+  to_nav_ptr->gyro[2] = AngularRate(Z_BODY_AXIS);
+#else
   to_nav_ptr->timestamp = GetTimestamp();
   to_nav_ptr->nav_mode_request = nav_mode_request_ | NavModeRequest()
     | (SBusSwitch(0) << 4) | (SBusSwitch(1) << 6);
@@ -197,21 +202,6 @@ void SendDataToNav(void)
   to_nav_ptr->quaternion[2] = Quat()[2];
   to_nav_ptr->quaternion[3] = Quat()[3];
   to_nav_ptr->pressure_altitude = DeltaPressureAltitude();
-#ifdef LOG_FLT_CTRL_DEBUG_TO_SD
-  to_nav_ptr->sbus_pitch = SBusPitch();
-  to_nav_ptr->sbus_roll = SBusRoll();
-  to_nav_ptr->sbus_yaw = SBusYaw();
-  to_nav_ptr->sbus_thrust = SBusThrust();
-  to_nav_ptr->battery_voltage = BatteryVoltage();
-  to_nav_ptr->thrust_command = ThrustCommand();
-  to_nav_ptr->heading_command = HeadingCommand();
-  to_nav_ptr->angular_command[0] = AngularCommand(0);
-  to_nav_ptr->angular_command[1] = AngularCommand(1);
-  to_nav_ptr->angular_command[2] = AngularCommand(2);
-  to_nav_ptr->kalman_p_dot = KalmanPDot();
-  to_nav_ptr->kalman_q_dot = KalmanQDot();
-  to_nav_ptr->vertical_speed = VerticalSpeed();
-  to_nav_ptr->vertical_acceleration = VerticalAcceleration();
 #endif
 
   UTSerialTx(UT_SERIAL_ID_NAV, (uint8_t *) to_nav_ptr, sizeof(struct ToNav));
