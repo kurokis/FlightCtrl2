@@ -12,7 +12,6 @@
 #include "pressure_altitude.h"
 #include "state.h"
 #include "sbus.h"
-//#include "spi.h"
 #include "ut_serial_protocol.h"
 #include "timing.h"
 #include "union_types.h"
@@ -24,7 +23,7 @@
 // Private data:
 
 #define NAV_COMMS_VERSION (1)
-#define NAV_FRESHNESS_LIMIT (500)  // millisends
+#define NAV_FRESHNESS_LIMIT (500)  // milliseconds
 #define NAV_MESSAGE_START_BYTE (0xAA)
 
 static volatile struct FromNav {
@@ -53,7 +52,6 @@ static enum NavModeBits {
   NAV_BIT_SWITCH_1   = 1<<7,
 } nav_mode_request_;
 
-//static uint8_t from_nav_head_ = 1, from_nav_tail_ = 0;
 static uint16_t last_reception_timestamp_ = 0;
 static enum NavErrorBits nav_error_bits_ = NAV_ERROR_BIT_STALE;
 

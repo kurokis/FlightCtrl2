@@ -134,7 +134,6 @@ static void Init(void)
   DetectMotors();
   ControlInit();  // Must be run after DetectMotors() to get NMotors()
 
-  //NavCommsInit();
   IndicatorInit();
 
   ResetOverrun();
@@ -260,7 +259,6 @@ int16_t main(void)
 
       ErrorCheck();
 
-      //NotifyNav();
       ProcessIncomingUART();
       SendPendingUART();
 
