@@ -55,7 +55,7 @@ void UpdateAttitude(void)
   if (!reset_attitude_)
   {
     UpdateQuaternion(quat_, AngularRateVector(), DT);
-    UpdateGravtiyInBody(quat_, g_b_);
+    UpdateGravityInBody(quat_, g_b_);
     CorrectQuaternionWithAccelerometer(quat_);
     if (NavStatus() & NAV_STATUS_BIT_HEADING_DATA_OK) CorrectHeading();
     QuaternionNormalizingFilter(quat_);
@@ -64,24 +64,33 @@ void UpdateAttitude(void)
   {
     HandleAttitudeReset();
   }
-  UpdateGravtiyInBody(quat_, g_b_);
+  UpdateGravityInBody(quat_, g_b_);
   heading_angle_ = HeadingFromQuaternion(quat_);
 }
 
 // -----------------------------------------------------------------------------
 void CorrectHeading(void)
 {
-  // Check for valid data and ensure only small corrections.
-  if (HeadingCorrection0() > 1.0 || HeadingCorrection0() < 0.95) return;
-  if (fabs(HeadingCorrectionZ()) > 0.05) return;
+  // TODO: Check for valid data and ensure only small corrections.
+  float hc0 = HeadingCorrection0();
+  float hcz = HeadingCorrectionZ();
+
+  if(fabs(hcz) > 0.05){
+    hc0 = 0.9987492178; // sqrt(1-0.05^2)
+    if(hcz > 0){
+      hcz = 0.05;
+    }else{
+      hcz = -0.05;
+    }
+  }
 
   float temp;
   temp = quat_[0];
-  quat_[0] = HeadingCorrection0() * quat_[0] - HeadingCorrectionZ() * quat_[3];
-  quat_[3] = HeadingCorrection0() * quat_[3] + HeadingCorrectionZ() * temp;
+  quat_[0] = hc0 * quat_[0] - hcz * quat_[3];
+  quat_[3] = hc0 * quat_[3] + hcz * temp;
   temp = quat_[1];
-  quat_[1] = HeadingCorrection0() * quat_[1] - HeadingCorrectionZ() * quat_[2];
-  quat_[2] = HeadingCorrection0() * quat_[2] + HeadingCorrectionZ() * temp;
+  quat_[1] = hc0 * quat_[1] - hcz * quat_[2];
+  quat_[2] = hc0 * quat_[2] + hcz * temp;
 }
 
 // -----------------------------------------------------------------------------
@@ -91,7 +100,7 @@ void ResetAttitude(void)
 }
 
 // -----------------------------------------------------------------------------
-float * UpdateGravtiyInBody(const float quat[4], float g_b[3])
+float * UpdateGravityInBody(const float quat[4], float g_b[3])
 {
   g_b[X_BODY_AXIS] = 2.0 * (quat[1] * quat[3] - quat[0] * quat[2]);
   g_b[Y_BODY_AXIS] = 2.0 * (quat[2] * quat[3] + quat[0] * quat[1]);

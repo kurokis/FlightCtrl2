@@ -29,7 +29,7 @@ void CorrectHeading(void);
 void UpdateAttitude(void);
 
 // -----------------------------------------------------------------------------
-float * UpdateGravtiyInBody(const float quat[4], float g_b[3]);
+float * UpdateGravityInBody(const float quat[4], float g_b[3]);
 
 // -----------------------------------------------------------------------------
 float * UpdateQuaternion(float quat[4], const float angular_rate[3], float dt);
