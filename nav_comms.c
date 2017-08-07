@@ -88,13 +88,28 @@ uint8_t NavStatusOK(void)
 // -----------------------------------------------------------------------------
 float HeadingCorrection0(void)
 {
-  return from_nav_.heading_correction_quat_0;
+  // Limit values of heading correction to fulfill linear approximation
+  float hc0 = from_nav_.heading_correction_quat_0;
+  float hcz = from_nav_.heading_correction_quat_z;
+  if(fabs(hcz) > 0.05){
+    hc0 = 0.9987492178; // sqrt(1-0.05^2)
+  }
+  return hc0;
 }
 
 // -----------------------------------------------------------------------------
 float HeadingCorrectionZ(void)
 {
-  return from_nav_.heading_correction_quat_z;
+  // Limit values of heading correction to fulfill linear approximation
+  float hcz = from_nav_.heading_correction_quat_z;
+  if(fabs(hcz) > 0.05){
+    if(hcz > 0){
+      hcz = 0.05;
+    }else{
+      hcz = -0.05;
+    }
+  }
+  return hcz;
 }
 
 // -----------------------------------------------------------------------------

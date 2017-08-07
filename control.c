@@ -375,14 +375,21 @@ void ControlInit(void)
   feedback_gains_.r = +4.921024667e+00;
   feedback_gains_.psi = +1.786057092e+01;
 
-  feedback_gains_.x_dot = 0.18;
+  feedback_gains_.x_dot = 0.09; //0.18;
   feedback_gains_.x = 0.135;
   feedback_gains_.x_integral = 0.045 * DT;
+  //feedback_gains_.x_dot = 0;
+  //feedback_gains_.x = 0;
+  //feedback_gains_.x_integral = 0;
 
-  feedback_gains_.w_dot = 5.091813030e-03;
-  feedback_gains_.w = 4.407621675e+00;
-  feedback_gains_.z = 7.422916434e+00;
-  feedback_gains_.z_integral = 4.854441330e+00 * DT * actuation_inverse_[0][3];
+  //feedback_gains_.w_dot = 5.091813030e-03;
+  //feedback_gains_.w = 4.407621675e+00;
+  //feedback_gains_.z = 7.422916434e+00;
+  //feedback_gains_.z_integral = 4.854441330e+00 * DT * actuation_inverse_[0][3];
+  feedback_gains_.w_dot = -0.24;
+  feedback_gains_.w = 2.84;
+  feedback_gains_.z = 4.33;
+  feedback_gains_.z_integral = 0;
 
   kalman_coefficients_.A11 = 9.248488132e-01;
   kalman_coefficients_.A13 = 7.515118678e-03;
@@ -637,7 +644,7 @@ static void CommandsForPositionControl(const struct FeedbackGains * k,
       // Move the rabbit toward the target at the computed rate.
       state->heading_cmd += *heading_rate_cmd * DT;
 
-      // Final heading command is the position of the rabbit plus the integral. 
+      // Final heading command is the position of the rabbit plus the integral.
       *heading_cmd = state->heading_cmd + state->heading_integral;
       break;
     }

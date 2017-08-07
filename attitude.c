@@ -74,23 +74,13 @@ void CorrectHeading(void)
   // TODO: Check for valid data and ensure only small corrections.
   float hc0 = HeadingCorrection0();
   float hcz = HeadingCorrectionZ();
-
-  if(fabs(hcz) > 0.05){
-    hc0 = 0.9987492178; // sqrt(1-0.05^2)
-    if(hcz > 0){
-      hcz = 0.05;
-    }else{
-      hcz = -0.05;
-    }
-  }
-
   float temp;
   temp = quat_[0];
-  quat_[0] = hc0 * quat_[0] - hcz * quat_[3];
-  quat_[3] = hc0 * quat_[3] + hcz * temp;
+  quat_[0] = quat_[0] * hc0 - quat_[3] * hcz;
+  quat_[3] = quat_[3] * hc0 + temp * hcz;
   temp = quat_[1];
-  quat_[1] = hc0 * quat_[1] - hcz * quat_[2];
-  quat_[2] = hc0 * quat_[2] + hcz * temp;
+  quat_[1] = quat_[1] * hc0  -  quat_[2] * hcz;
+  quat_[2] = quat_[2] * hc0  +  temp * hcz;
 }
 
 // -----------------------------------------------------------------------------
