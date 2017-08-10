@@ -387,7 +387,7 @@ void ControlInit(void)
   //feedback_gains_.z = 7.422916434e+00;
   //feedback_gains_.z_integral = 4.854441330e+00 * DT * actuation_inverse_[0][3];
   feedback_gains_.w_dot = -0.24;
-  feedback_gains_.w = 2.84;
+  feedback_gains_.w = 1.5;
   feedback_gains_.z = 4.33;
   feedback_gains_.z_integral = 0;
 
