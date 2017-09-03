@@ -11,6 +11,8 @@ enum NavStatusBits {
   NAV_STATUS_BIT_VELOCITY_DATA_OK        = 1<<2,
   NAV_STATUS_BIT_LOW_PRECISION_VERTICAL  = 1<<3,
   NAV_STATUS_BIT_POSITION_RESET_REQUEST  = 1<<4,
+  NAV_STATUS_BIT_USE_MARKER_GAINS = 1<<5,
+  NAV_STATUS_BIT_CUT_THROTTLE = 1<<6
 };
 
 enum NavErrorBits {
@@ -39,6 +41,12 @@ uint8_t NavStatus(void);
 
 // -----------------------------------------------------------------------------
 uint8_t NavStatusOK(void);
+
+// -----------------------------------------------------------------------------
+uint8_t NavStatusUseMarkerGains(void);
+
+// -----------------------------------------------------------------------------
+uint8_t NavStatusCutThrottle(void);
 
 // -----------------------------------------------------------------------------
 const volatile float * PositionVector(void);

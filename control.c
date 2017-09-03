@@ -68,6 +68,8 @@ static struct FeedbackGains {
   float w;
   float x_dot;
   float x;
+  float x_dot_marker; // gain for marker control
+  float x_marker; // gain for marker control
   float x_integral;
   float z;
   float z_integral;
@@ -156,7 +158,8 @@ static void UpdateKalmanFilter(const float angular_cmd[3],
 static void UpdateModel(const float position_cmd[3],
   const float velocity_cmd[3], const struct FeedbackGains * k,
   struct Model * m);
-
+static float FeedbackGainU(void);
+static float FeedbackGainX(void);
 
 // =============================================================================
 // Accessors:
@@ -248,6 +251,8 @@ void ControlInit(void)
 
   feedback_gains_.x_dot = 0.18;
   feedback_gains_.x = 0.135;
+  feedback_gains_.x_dot_marker = 0.18;
+  feedback_gains_.x_marker = 0.135;
   feedback_gains_.x_integral = 0.045 * DT;
 
   feedback_gains_.w_dot = 0.0;
@@ -280,6 +285,8 @@ void ControlInit(void)
 
   feedback_gains_.x_dot = 0.17;
   feedback_gains_.x = 0.1;
+  feedback_gains_.x_dot_marker = 0.17;
+  feedback_gains_.x_marker = 0.1;
   feedback_gains_.x_integral = 0.02 * DT;
 
   feedback_gains_.w_dot = +0.000000000e+00;
@@ -313,6 +320,8 @@ void ControlInit(void)
 
   feedback_gains_.x_dot = 0.17;
   feedback_gains_.x = 0.1;
+  feedback_gains_.x_dot_marker = 0.17;
+  feedback_gains_.x_marker = 0.1;
   feedback_gains_.x_integral = 0.02 * DT;
 
   feedback_gains_.w_dot = +0.000000000e+00;
@@ -346,6 +355,8 @@ void ControlInit(void)
 
   feedback_gains_.x_dot = 0.17;
   feedback_gains_.x = 0.1;
+  feedback_gains_.x_dot_marker = 0.17;
+  feedback_gains_.x_marker = 0.1;
   feedback_gains_.x_integral = 0.02 * DT;
 
   feedback_gains_.w_dot = 0.0;
@@ -375,8 +386,10 @@ void ControlInit(void)
   feedback_gains_.r = +4.921024667e+00;
   feedback_gains_.psi = +1.786057092e+01;
 
-  feedback_gains_.x_dot = 0.06; //0.18;
+  feedback_gains_.x_dot = 0.03; //0.18;
   feedback_gains_.x = 0.1;
+  feedback_gains_.x_dot_marker = 0.09;
+  feedback_gains_.x_marker = 0.135;
   feedback_gains_.x_integral = 0.045 * DT;
   //feedback_gains_.x_dot = 0;
   //feedback_gains_.x = 0;
@@ -417,6 +430,8 @@ void ControlInit(void)
 
   feedback_gains_.x_dot = 0.21;
   feedback_gains_.x = 0.15;
+  feedback_gains_.x_dot_marker = 0.21;
+  feedback_gains_.x_marker = 0.15;
   feedback_gains_.x_integral = 0.045 * DT;
 
   feedback_gains_.w_dot = +0.000000000e+00;
@@ -447,7 +462,7 @@ void ControlInit(void)
   limits_.heading_error = 0.25 * (MAX_CMD - MIN_CMD) / (feedback_gains_.psi
     * fabs(actuation_inverse_[0][2]));
 
-  k_x_velocity_to_position_error_ = feedback_gains_.x_dot / feedback_gains_.x;
+  k_x_velocity_to_position_error_ = FeedbackGainU() / FeedbackGainX();
   k_x_position_error_to_velocity_ = 1.0 / k_x_velocity_to_position_error_;
   k_z_velocity_to_position_error_ = feedback_gains_.w / feedback_gains_.z;
   k_z_position_error_to_velocity_ = 1.0 / k_z_velocity_to_position_error_;
@@ -1005,4 +1020,20 @@ static void UpdateModel(const float position_cmd[3],
   m->vertical_acceleration += w_dot_dot * DT;
   m->velocity[D_WORLD_AXIS] += m->vertical_acceleration * DT;
   m->position[D_WORLD_AXIS] += m->velocity[D_WORLD_AXIS] * DT;
+}
+
+static float FeedbackGainU(void){
+  if(NavStatusUseMarkerGains()){
+    return feedback_gains_.x_dot_marker;
+  }else{
+    return feedback_gains_.x_dot;
+  }
+}
+
+static float FeedbackGainX(void){
+  if(NavStatusUseMarkerGains()){
+    return feedback_gains_.x_marker;
+  }else{
+    return feedback_gains_.x;
+  }
 }

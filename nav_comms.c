@@ -86,6 +86,20 @@ uint8_t NavStatusOK(void)
 }
 
 // -----------------------------------------------------------------------------
+uint8_t NavStatusUseMarkerGains(void)
+{
+  return from_nav_.status
+    & NAV_STATUS_BIT_USE_MARKER_GAINS;
+}
+
+// -----------------------------------------------------------------------------
+uint8_t NavStatusCutThrottle(void)
+{
+  return from_nav_.status
+    & NAV_STATUS_BIT_CUT_THROTTLE;
+}
+
+// -----------------------------------------------------------------------------
 float HeadingCorrection0(void)
 {
   // Limit values of heading correction to fulfill linear approximation
