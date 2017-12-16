@@ -617,20 +617,18 @@ static void CommandsForPositionControl(const struct FeedbackGains * k,
 
       float position_rabbit_to_target_norm = Vector3Norm(
         position_rabbit_to_target_vector);
-      float position_rabbit_increment_norm = FloatLimit(TransitSpeed(),
-        MIN_TRANSIT_SPEED, MAX_TRANSIT_SPEED) * DT;
-      if (position_rabbit_increment_norm < position_rabbit_to_target_norm)
-      {
-        float rabbit_increment_vector[3];
-        Vector3Scale(position_rabbit_to_target_vector,
-          position_rabbit_increment_norm / position_rabbit_to_target_norm,
-          rabbit_increment_vector);
-        Vector3AddToSelf(state->position_cmd, rabbit_increment_vector);
-      }
-      else
-      {
-        Vector3Copy((const float *)TargetPositionVector(),
-          state->position_cmd);
+      float transit_speed = FloatLimit(TransitSpeed(),
+        MIN_TRANSIT_SPEED, MAX_TRANSIT_SPEED);
+
+      float velocity_rabbit_to_target_vector[3];
+      Vector3Scale(position_rabbit_to_target_vector, transit_speed/position_rabbit_to_target_norm, velocity_rabbit_to_target_vector);
+
+      for (int i = 0; i < 3; i++) {
+        if (position_rabbit_to_target_vector[i] < k_x_velocity_to_position_error_ * velocity_rabbit_to_target_vector[i]) {
+          state->position_cmd[i] = TargetPositionVector()[i];            
+        } else {
+          state->position_cmd[i] += k_x_velocity_to_position_error_ * velocity_rabbit_to_target_vector[i];
+        }
       }
 
       // Integrate the difference with the model.
