@@ -43,24 +43,106 @@ void InitializeAdctrl(void){
   // Pitch control parameters (128 Hz)
   // Each row of sos is in the order of b0, b1, b2, a1, a2,
   // where H(z) = (b0 + b1 z^(-1) + b2 z^(-2))/(1 + a1 z^(-1) + a2 z^(-2)).
+
+  // Original
+  //const float Ts = 1.0 / 128.0;
+  //const float Amx[3 * 3] =
+  //  { -36.90295082, -594.1758937, -3674.012659, 1, 0, 0, 0, 1, 0 };
+  //const float Bmx[3 * 1] = { 3674.012659, 0, 0 };
+  //const float Bumx[3 * 2] = { 0, 0, 99.5587772078336, 0, 0, 6.183375491929674 };
+  //const float Kgx = 1.0;
+  //const float Hsigma1x_sos[5] = { 1, 1, 0, -0.862606, 0 };
+  //const float Hsigma1x_gain = 0.068697033871630;
+  //const float Hsigma2x_sos[3 * 5] =
+  //  { 1, 1, 0, -0.903714, 0,
+  //    1, -1.65133, 0.675635, -1.81325, 0.829109,
+  //    1, -1.81325, 0.829109, -1.97893, 0.979145 };
+  //const float Hsigma2x_gain = 0.000426671819881097;
+  //const float Hsigma3x_sos[3 * 5] =
+  //  { 1, 0.0962854, -0.903715, -1.90224, 0.902382,
+  //    1, -1.71806, 0.749611, -1.81325, 0.829109,
+  //    1, -1.81325, 0.829109, -1.97893, 0.979145 };
+  //const float Hsigma3x_gain = 0.000005031069885030881;
+
+  // Cm = 1.0, Cum = 5.0
   const float Ts = 1.0 / 128.0;
   const float Amx[3 * 3] =
-    { -36.90295082, -594.1758937, -3674.012659, 1, 0, 0, 0, 1, 0 };
-  const float Bmx[3 * 1] = { 3674.012659, 0, 0 };
-  const float Bumx[3 * 2] = { 0, 0, 99.5587772078336, 0, 0, 6.183375491929674 };
+    { -36.9, -594, -3670, 1, 0, 0, 0, 1, 0 };
+  const float Bmx[3 * 1] = { 3670, 0, 0 };
+  const float Bumx[3 * 2] = { 0, 0, 100.1323, 0, 0, 6.1806 };
   const float Kgx = 1.0;
-  const float Hsigma1x_sos[5] = { 1, 1, 0, -0.862606, 0 };
-  const float Hsigma1x_gain = 0.068697033871630;
+  const float Hsigma1x_sos[5] = { 0, 1, 0, -0.9521, 0 };
+  const float Hsigma1x_gain = 0.0479;
   const float Hsigma2x_sos[3 * 5] =
-    { 1, 1, 0, -0.903714, 0,
-      1, -1.65133, 0.675635, -1.81325, 0.829109,
-      1, -1.81325, 0.829109, -1.97893, 0.979145 };
-  const float Hsigma2x_gain = 0.000426671819881097;
+    { 0, 1, 0.9345, -1.6864, 0.7073,
+      1, -1.6536, 0.6776, -1.7292, 0.7824,
+      1, -1.8133, 0.8291, -1.8133, 0.8291 };
+  const float Hsigma2x_gain = 0.0240;
   const float Hsigma3x_sos[3 * 5] =
-    { 1, 0.0962854, -0.903715, -1.90224, 0.902382,
-      1, -1.71806, 0.749611, -1.81325, 0.829109,
-      1, -1.81325, 0.829109, -1.97893, 0.979145 };
-  const float Hsigma3x_gain = 0.000005031069885030881;
+    { 0, 1, -0.9041, -1.6864, 0.7073,
+      1, -1.7181, 0.7496, -1.7292, 0.7824,
+      1, -1.8133, 0.8291, -1.8133, 0.8291 };
+  const float Hsigma3x_gain = 0.3677;
+
+  // Cm = 0.5, Cum = 5.0
+  //const float Ts = 1.0 / 128.0;
+  //const float Amx[3 * 3] =
+  //  { -36.9, -594, -3670, 1, 0, 0, 0, 1, 0 };
+  //const float Bmx[3 * 1] = { 3670, 0, 0 };
+  //const float Bumx[3 * 2] = { 0, 0, 100.1323, 0, 0, 6.1806 };
+  //const float Kgx = 1.0;
+  //const float Hsigma1x_sos[5] = { 0, 1, 0, -0.9758, 0 }; // new
+  //const float Hsigma1x_gain = 0.0242; // new
+  //const float Hsigma2x_sos[3 * 5] =
+  //  { 0, 1, 0.9345, -1.6864, 0.7073,
+  //    1, -1.6536, 0.6776, -1.7292, 0.7824,
+  //    1, -1.8133, 0.8291, -1.8133, 0.8291 };
+  //const float Hsigma2x_gain = 0.0240;
+  //const float Hsigma3x_sos[3 * 5] =
+  //  { 0, 1, -0.9041, -1.6864, 0.7073,
+  //    1, -1.7181, 0.7496, -1.7292, 0.7824,
+  //    1, -1.8133, 0.8291, -1.8133, 0.8291 };
+  //const float Hsigma3x_gain = 0.3677;
+
+  // Cm = 1.0, Cum = 3.0
+  //const float Ts = 1.0 / 128.0;
+  //const float Amx[3 * 3] =
+  //  { -36.9, -594, -3670, 1, 0, 0, 0, 1, 0 };
+  //const float Bmx[3 * 1] = { 3670, 0, 0 };
+  //const float Bumx[3 * 2] = { 0, 0, 100.1323, 0, 0, 6.1806 };
+  //const float Kgx = 1.0;
+  //const float Hsigma1x_sos[5] = { 0, 1, 0, -0.9521, 0 };
+  //const float Hsigma1x_gain = 0.0479;
+  //const float Hsigma2x_sos[3 * 5] =
+  //  { 0, 1, 0.9976, -1.7671, 0.7803,
+  //    1, -1.6536, 0.6776, -1.8133, 0.8291,
+  //    1, -1.8133, 0.8291, -1.8429, 0.8631 };
+  //const float Hsigma2x_gain = 0.00559;
+  //const float Hsigma3x_sos[3 * 5] =
+  //  { 0, 1, -0.9041, -1.7671, 0.7803,
+  //    1, -1.7182, 0.7496, -1.8133, 0.8291,
+  //    1, -1.8133, 0.8291, -1.8429, 0.8631 };
+  //const float Hsigma3x_gain = 0.0886;
+
+  // Cm = 5.0, Cum = 5.0
+  //const float Ts = 1.0 / 128.0;
+  //const float Amx[3 * 3] =
+  //  { -36.9, -594, -3670, 1, 0, 0, 0, 1, 0 };
+  //const float Bmx[3 * 1] = { 3670, 0, 0 };
+  //const float Bumx[3 * 2] = { 0, 0, 100.1323, 0, 0, 6.1806 };
+  //const float Kgx = 1.0;
+  //const float Hsigma1x_sos[5] = { 0, 1, 0, -0.7824, 0 };
+  //const float Hsigma1x_gain = 0.2176;
+  //const float Hsigma2x_sos[3 * 5] =
+  //  { 0, 1, 0.9345, -1.6864, 0.7073,
+  //    1, -1.6536, 0.6776, -1.7292, 0.7824,
+  //    1, -1.8133, 0.8291, -1.8133, 0.8291 };
+  //const float Hsigma2x_gain = 0.0240;
+  //const float Hsigma3x_sos[3 * 5] =
+  //  { 0, 1, -0.9041, -1.6864, 0.7073,
+  //    1, -1.7181, 0.7496, -1.7292, 0.7824,
+  //    1, -1.8133, 0.8291, -1.8133, 0.8291 };
+  //const float Hsigma3x_gain = 0.3677;
 
   InitializeL1(&l1x, Ts, Amx, Bmx, Bumx, Kgx,
     Hsigma1x_sos, Hsigma1x_gain,
