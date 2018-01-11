@@ -907,10 +907,10 @@ static void AdaptiveQuaternionFromGravityAndHeadingCommand
   float pitch_states[3], roll_states[3], g_b_cmd_ad[2];
   const float * quat = Quat();
   pitch_states[0] = kalman->q_dot;
-  pitch_states[1] = AngularRate(X_BODY_AXIS);
+  pitch_states[1] = AngularRate(Y_BODY_AXIS);
   pitch_states[2] = asin(2.0 * (quat[0] * quat[2] - quat[1] * quat[3]));
   roll_states[0] = kalman->p_dot;
-  roll_states[1] = AngularRate(Y_BODY_AXIS);
+  roll_states[1] = AngularRate(X_BODY_AXIS);
   roll_states[2] = atan2(2.0 * (quat[0] * quat[1] + quat[2] * quat[3]), 1.0 - 2.0
     * (quat[1] * quat[1] + quat[2] * quat[2]));
   float ad_pitch_cmd = AdaptivePitchControl(pitch_states,-g_b_cmd[X_BODY_AXIS]);
