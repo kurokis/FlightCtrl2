@@ -123,6 +123,7 @@ static struct PositionControlState {
 static float angular_cmd_[3] = { 0.0 };
 static float heading_cmd_ = 0.0, thrust_cmd_ = 0.0;
 static float nav_g_b_cmd_[2] = { 0.0 }, nav_thrust_cmd_ = 0.0;
+static float g_b_cmd_ad_[2] = { 0.0 };
 static float quat_cmd_[4];  // Target attitude in quaternion
 
 
@@ -210,6 +211,12 @@ uint16_t MotorSetpoint(uint8_t n)
 const float * NavGBCommand(void)
 {
   return nav_g_b_cmd_;
+}
+
+// -----------------------------------------------------------------------------
+const float * AdaptiveGBCommand(void)
+{
+  return g_b_cmd_ad_;
 }
 
 // -----------------------------------------------------------------------------
@@ -904,7 +911,7 @@ static void AdaptiveQuaternionFromGravityAndHeadingCommand
 {
   // Adaptive control
   // TODO: optimize this
-  float pitch_states[3], roll_states[3], g_b_cmd_ad[2];
+  float pitch_states[3], roll_states[3];
   const float * quat = Quat();
   pitch_states[0] = kalman->q_dot;
   pitch_states[1] = AngularRate(Y_BODY_AXIS);
@@ -916,19 +923,19 @@ static void AdaptiveQuaternionFromGravityAndHeadingCommand
   float ad_pitch_cmd = AdaptivePitchControl(pitch_states,-g_b_cmd[X_BODY_AXIS]);
   float ad_roll_cmd = AdaptiveRollControl(roll_states,g_b_cmd[Y_BODY_AXIS]);
 
-  g_b_cmd_ad[X_BODY_AXIS] = -ad_pitch_cmd;
-  g_b_cmd_ad[Y_BODY_AXIS] = ad_roll_cmd;
+  g_b_cmd_ad_[X_BODY_AXIS] = -ad_pitch_cmd;
+  g_b_cmd_ad_[Y_BODY_AXIS] = ad_roll_cmd;
 
   // Compute the z component of the gravity vector command.
-  float g_b_cmd_ad_z = sqrt(1.0 - g_b_cmd_ad[X_BODY_AXIS] * g_b_cmd_ad[X_BODY_AXIS]
-    - g_b_cmd_ad[Y_BODY_AXIS] * g_b_cmd_ad[Y_BODY_AXIS]);
+  float g_b_cmd_ad_z = sqrt(1.0 - g_b_cmd_ad_[X_BODY_AXIS] * g_b_cmd_ad_[X_BODY_AXIS]
+    - g_b_cmd_ad_[Y_BODY_AXIS] * g_b_cmd_ad_[Y_BODY_AXIS]);
 
   // Form a quaternion from these components (z component is 0).
   float temp1 = 0.5 + 0.5 * g_b_cmd_ad_z;
   float quat_g_b_cmd_0 = sqrt(temp1);
   float temp2 = 1.0 / (2.0 * quat_g_b_cmd_0);
-  float quat_g_b_cmd_x = g_b_cmd_ad[Y_BODY_AXIS] * temp2;
-  float quat_g_b_cmd_y = -g_b_cmd_ad[X_BODY_AXIS] * temp2;
+  float quat_g_b_cmd_x = g_b_cmd_ad_[Y_BODY_AXIS] * temp2;
+  float quat_g_b_cmd_y = -g_b_cmd_ad_[X_BODY_AXIS] * temp2;
 
   // Determine the (approximate) heading of this command for removal (optional).
   float heading_from_g_b_cmd = (quat_g_b_cmd_x * quat_g_b_cmd_y) / (temp1

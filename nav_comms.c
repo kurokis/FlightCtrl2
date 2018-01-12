@@ -170,11 +170,6 @@ void SendDataToNav(void)
 
   // Specify the payload structure.
   struct ToNav {
-#ifdef DEBUG
-    uint16_t motor_setpoint[4];
-    float accelerometer[3];
-    float gyro[3];
-#else
     uint16_t timestamp;
     uint8_t nav_mode_request;
     uint8_t state;
@@ -182,24 +177,16 @@ void SendDataToNav(void)
     float gyro[3];
     float quaternion[4];
     float pressure_altitude;
+#ifdef DEBUG
+    float g_b_cmd[2];
+    float g_b_cmd_ad[2];
 #endif
   } __attribute__((packed)) to_nav_;
 
   struct ToNav * to_nav_ptr;
   to_nav_ptr = &to_nav_;
 
-#ifdef DEBUG
-  to_nav_ptr->motor_setpoint[0] = MotorSetpoint(0);
-  to_nav_ptr->motor_setpoint[1] = MotorSetpoint(1);
-  to_nav_ptr->motor_setpoint[2] = MotorSetpoint(2);
-  to_nav_ptr->motor_setpoint[3] = MotorSetpoint(3);
-  to_nav_ptr->accelerometer[0] = Acceleration(X_BODY_AXIS);
-  to_nav_ptr->accelerometer[1] = Acceleration(Y_BODY_AXIS);
-  to_nav_ptr->accelerometer[2] = Acceleration(Z_BODY_AXIS);
-  to_nav_ptr->gyro[0] = AngularRate(X_BODY_AXIS);
-  to_nav_ptr->gyro[1] = AngularRate(Y_BODY_AXIS);
-  to_nav_ptr->gyro[2] = AngularRate(Z_BODY_AXIS);
-#else
+
   to_nav_ptr->timestamp = GetTimestamp();
   to_nav_ptr->nav_mode_request = nav_mode_request_ | NavModeRequest()
     | (SBusSwitch(0) << 4) | (SBusSwitch(1) << 6);
@@ -215,6 +202,11 @@ void SendDataToNav(void)
   to_nav_ptr->quaternion[2] = Quat()[2];
   to_nav_ptr->quaternion[3] = Quat()[3];
   to_nav_ptr->pressure_altitude = DeltaPressureAltitude();
+#ifdef DEBUG
+  to_nav_ptr->g_b_cmd[0] = NavGBCommand()[0];
+  to_nav_ptr->g_b_cmd[1] = NavGBCommand()[1];
+  to_nav_ptr->g_b_cmd_ad[0] = AdaptiveGBCommand()[0];
+  to_nav_ptr->g_b_cmd_ad[1] = AdaptiveGBCommand()[1];
 #endif
 
   UTSerialTx(UT_SERIAL_ID_NAV, (uint8_t *) to_nav_ptr, sizeof(struct ToNav));

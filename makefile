@@ -16,7 +16,7 @@ LDFLAGS  := -Ofast -Wall -Wextra -Wundef -Werror \
             -fdata-sections -ffunction-sections -fshort-enums \
             -Wl,--relax,--gc-sections,-u,vfprintf -lprintf_flt -lm
 LTOFLAGS := -flto -fwhole-program
-ALLFLAGS  = -mmcu=$(MCU) -DF_CPU="$(F_CPU)UL" -DSMALL_QUAD #-DDEBUG
+ALLFLAGS  = -mmcu=$(MCU) -DF_CPU="$(F_CPU)UL" -DSMALL_QUAD -DDEBUG
 
 PROGRAM_START := 0x0000
 EEPROM_START := 0x0000
