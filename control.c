@@ -123,6 +123,7 @@ static struct PositionControlState {
 static float angular_cmd_[3] = { 0.0 };
 static float heading_cmd_ = 0.0, thrust_cmd_ = 0.0;
 static float nav_g_b_cmd_[2] = { 0.0 }, nav_thrust_cmd_ = 0.0;
+static float g_b_cmd[2] = { 0.0 };
 static float g_b_cmd_ad_[2] = { 0.0 };
 static float quat_cmd_[4];  // Target attitude in quaternion
 
@@ -213,6 +214,11 @@ const float * NavGBCommand(void)
   return nav_g_b_cmd_;
 }
 
+// -----------------------------------------------------------------------------
+const float * GBCommand(void)
+{
+  return g_b_cmd;
+}
 // -----------------------------------------------------------------------------
 const float * AdaptiveGBCommand(void)
 {
@@ -470,7 +476,7 @@ void ControlInit(void)
 // -----------------------------------------------------------------------------
 void Control(void)
 {
-  float g_b_cmd[2];  // Target x and y components of the gravity vector in body
+  //float g_b_cmd[2];  // Target x and y components of the gravity vector in body
   float heading_rate_cmd;
 
   // Derive a target attitude from the position of the sticks.

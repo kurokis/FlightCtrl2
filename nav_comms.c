@@ -203,8 +203,8 @@ void SendDataToNav(void)
   to_nav_ptr->quaternion[3] = Quat()[3];
   to_nav_ptr->pressure_altitude = DeltaPressureAltitude();
 #ifdef DEBUG
-  to_nav_ptr->g_b_cmd[0] = NavGBCommand()[0];
-  to_nav_ptr->g_b_cmd[1] = NavGBCommand()[1];
+  to_nav_ptr->g_b_cmd[0] = GBCommand()[0];
+  to_nav_ptr->g_b_cmd[1] = GBCommand()[1];
   to_nav_ptr->g_b_cmd_ad[0] = AdaptiveGBCommand()[0];
   to_nav_ptr->g_b_cmd_ad[1] = AdaptiveGBCommand()[1];
 #endif
