@@ -150,11 +150,11 @@ static void CommandsFromSticks(float g_b_cmd[2], float * heading_cmd,
 static void FormAngularCommand(const float quat_cmd[4],
   float heading_rate_cmd, const struct KalmanState * kalman,
   const struct FeedbackGains * k, float angular_cmd[3]);
-//static void QuaternionFromGravityAndHeadingCommand(const float g_b_cmd[2],
-//  const struct Limits * limit, float heading_cmd, float quat_cmd[4]);
-static void AdaptiveQuaternionFromGravityAndHeadingCommand(
-  const float g_b_cmd[2], const struct Limits * limit, float heading_cmd,
-  const struct KalmanState * kalman, float quat_cmd[4]);
+static void QuaternionFromGravityAndHeadingCommand(const float g_b_cmd[2],
+  const struct Limits * limit, float heading_cmd, float quat_cmd[4]);
+//static void AdaptiveQuaternionFromGravityAndHeadingCommand(
+//  const float g_b_cmd[2], const struct Limits * limit, float heading_cmd,
+//  const struct KalmanState * kalman, float quat_cmd[4]);
 static void ResetModel(const float position[3], const float velocity[3],
   struct Model * m);
 static void UpdateKalmanFilter(const float angular_cmd[3],
@@ -490,15 +490,15 @@ void Control(void)
   thrust_cmd_ += nav_thrust_cmd_;
 
   // Baseline control
-  //QuaternionFromGravityAndHeadingCommand(g_b_cmd, &limits_, heading_cmd_,
-  //  quat_cmd_);
-  //// Update the pitch and roll Kalman filters before recomputing the command.
-  //UpdateKalmanFilter(angular_cmd_, &kalman_coefficients_, &kalman_state_);
+  QuaternionFromGravityAndHeadingCommand(g_b_cmd, &limits_, heading_cmd_,
+    quat_cmd_);
+  // Update the pitch and roll Kalman filters before recomputing the command.
+  UpdateKalmanFilter(angular_cmd_, &kalman_coefficients_, &kalman_state_);
 
   // Adaptive control
-  UpdateKalmanFilter(angular_cmd_, &kalman_coefficients_, &kalman_state_);
-  AdaptiveQuaternionFromGravityAndHeadingCommand(g_b_cmd, &limits_,
-    heading_cmd_, &kalman_state_, quat_cmd_);
+  //UpdateKalmanFilter(angular_cmd_, &kalman_coefficients_, &kalman_state_);
+  //AdaptiveQuaternionFromGravityAndHeadingCommand(g_b_cmd, &limits_,
+  //  heading_cmd_, &kalman_state_, quat_cmd_);
 
   // Compute a new attitude acceleration command.
   // TODO: separate proportional and integral commands
@@ -872,76 +872,19 @@ static void FormAngularCommand(const float quat_cmd[4],
 // exactly match heading command for attitude commands that are far from level.
 // Also note that the heading error is saturated in this step to avoid an overly
 // large yawing command.
-//static void QuaternionFromGravityAndHeadingCommand(const float g_b_cmd[2],
-//  const struct Limits * limit, float heading_cmd, float quat_cmd[4])
-//{
-//  // Compute the z component of the gravity vector command.
-//  float g_b_cmd_z = sqrt(1.0 - g_b_cmd[X_BODY_AXIS] * g_b_cmd[X_BODY_AXIS]
-//    - g_b_cmd[Y_BODY_AXIS] * g_b_cmd[Y_BODY_AXIS]);
-
-//  // Form a quaternion from these components (z component is 0).
-//  float temp1 = 0.5 + 0.5 * g_b_cmd_z;
-//  float quat_g_b_cmd_0 = sqrt(temp1);
-//  float temp2 = 1.0 / (2.0 * quat_g_b_cmd_0);
-//  float quat_g_b_cmd_x = g_b_cmd[Y_BODY_AXIS] * temp2;
-//  float quat_g_b_cmd_y = -g_b_cmd[X_BODY_AXIS] * temp2;
-
-//  // Determine the (approximate) heading of this command for removal (optional).
-//  float heading_from_g_b_cmd = (quat_g_b_cmd_x * quat_g_b_cmd_y) / (temp1
-//    + quat_g_b_cmd_x * quat_g_b_cmd_x - 0.5);
-
-//  // Limit the heading error.
-//  float heading_error = FloatSLimit(WrapToPlusMinusPi(heading_cmd
-//    - HeadingAngle()), limit->heading_error);
-
-//  // Make a second quaternion for the commanded heading minus the residual
-//  // heading from the gravity vector command (x and y components are zero).
-//  float temp = (HeadingAngle() + heading_error - heading_from_g_b_cmd) * 0.5;
-//  float quat_heading_cmd_0 = cos(temp);
-//  float quat_heading_cmd_z = sin(temp);
-
-//  // Combine the quaternions (heading rotation first) to form the final
-//  // quaternion command.
-//  quat_cmd[0] = quat_heading_cmd_0 * quat_g_b_cmd_0;
-//  quat_cmd[1] = quat_heading_cmd_0 * quat_g_b_cmd_x - quat_heading_cmd_z
-//    * quat_g_b_cmd_y;
-//  quat_cmd[2] = quat_heading_cmd_0 * quat_g_b_cmd_y + quat_heading_cmd_z
-//    * quat_g_b_cmd_x;
-//  quat_cmd[3] = quat_heading_cmd_z * quat_g_b_cmd_0;
-//}
-
-// -----------------------------------------------------------------------------
-static void AdaptiveQuaternionFromGravityAndHeadingCommand
-  (const float g_b_cmd[2], const struct Limits * limit, float heading_cmd,
-  const struct KalmanState * kalman, float quat_cmd[4])
+static void QuaternionFromGravityAndHeadingCommand(const float g_b_cmd[2],
+  const struct Limits * limit, float heading_cmd, float quat_cmd[4])
 {
-  // Adaptive control
-  // TODO: optimize this
-  float pitch_states[3], roll_states[3];
-  const float * quat = Quat();
-  pitch_states[0] = kalman->q_dot;
-  pitch_states[1] = AngularRate(Y_BODY_AXIS);
-  pitch_states[2] = asin(2.0 * (quat[0] * quat[2] - quat[1] * quat[3]));
-  roll_states[0] = kalman->p_dot;
-  roll_states[1] = AngularRate(X_BODY_AXIS);
-  roll_states[2] = atan2(2.0 * (quat[0] * quat[1] + quat[2] * quat[3]), 1.0 - 2.0
-    * (quat[1] * quat[1] + quat[2] * quat[2]));
-  float ad_pitch_cmd = AdaptivePitchControl(pitch_states,-g_b_cmd[X_BODY_AXIS]);
-  float ad_roll_cmd = AdaptiveRollControl(roll_states,g_b_cmd[Y_BODY_AXIS]);
-
-  g_b_cmd_ad_[X_BODY_AXIS] = -ad_pitch_cmd;
-  g_b_cmd_ad_[Y_BODY_AXIS] = ad_roll_cmd;
-
   // Compute the z component of the gravity vector command.
-  float g_b_cmd_ad_z = sqrt(1.0 - g_b_cmd_ad_[X_BODY_AXIS] * g_b_cmd_ad_[X_BODY_AXIS]
-    - g_b_cmd_ad_[Y_BODY_AXIS] * g_b_cmd_ad_[Y_BODY_AXIS]);
+  float g_b_cmd_z = sqrt(1.0 - g_b_cmd[X_BODY_AXIS] * g_b_cmd[X_BODY_AXIS]
+    - g_b_cmd[Y_BODY_AXIS] * g_b_cmd[Y_BODY_AXIS]);
 
   // Form a quaternion from these components (z component is 0).
-  float temp1 = 0.5 + 0.5 * g_b_cmd_ad_z;
+  float temp1 = 0.5 + 0.5 * g_b_cmd_z;
   float quat_g_b_cmd_0 = sqrt(temp1);
   float temp2 = 1.0 / (2.0 * quat_g_b_cmd_0);
-  float quat_g_b_cmd_x = g_b_cmd_ad_[Y_BODY_AXIS] * temp2;
-  float quat_g_b_cmd_y = -g_b_cmd_ad_[X_BODY_AXIS] * temp2;
+  float quat_g_b_cmd_x = g_b_cmd[Y_BODY_AXIS] * temp2;
+  float quat_g_b_cmd_y = -g_b_cmd[X_BODY_AXIS] * temp2;
 
   // Determine the (approximate) heading of this command for removal (optional).
   float heading_from_g_b_cmd = (quat_g_b_cmd_x * quat_g_b_cmd_y) / (temp1
@@ -966,6 +909,63 @@ static void AdaptiveQuaternionFromGravityAndHeadingCommand
     * quat_g_b_cmd_x;
   quat_cmd[3] = quat_heading_cmd_z * quat_g_b_cmd_0;
 }
+
+// -----------------------------------------------------------------------------
+//static void AdaptiveQuaternionFromGravityAndHeadingCommand
+//  (const float g_b_cmd[2], const struct Limits * limit, float heading_cmd,
+//  const struct KalmanState * kalman, float quat_cmd[4])
+//{
+//  // Adaptive control
+//  // TODO: optimize this
+//  float pitch_states[3], roll_states[3];
+//  const float * quat = Quat();
+//  pitch_states[0] = kalman->q_dot;
+//  pitch_states[1] = AngularRate(Y_BODY_AXIS);
+//  pitch_states[2] = asin(2.0 * (quat[0] * quat[2] - quat[1] * quat[3]));
+//  roll_states[0] = kalman->p_dot;
+//  roll_states[1] = AngularRate(X_BODY_AXIS);
+//  roll_states[2] = atan2(2.0 * (quat[0] * quat[1] + quat[2] * quat[3]), 1.0 - 2.0
+//    * (quat[1] * quat[1] + quat[2] * quat[2]));
+//  float ad_pitch_cmd = AdaptivePitchControl(pitch_states,-g_b_cmd[X_BODY_AXIS]);
+//  float ad_roll_cmd = AdaptiveRollControl(roll_states,g_b_cmd[Y_BODY_AXIS]);
+//
+//  g_b_cmd_ad_[X_BODY_AXIS] = -ad_pitch_cmd;
+//  g_b_cmd_ad_[Y_BODY_AXIS] = ad_roll_cmd;
+//
+//  // Compute the z component of the gravity vector command.
+//  float g_b_cmd_ad_z = sqrt(1.0 - g_b_cmd_ad_[X_BODY_AXIS] * g_b_cmd_ad_[X_BODY_AXIS]
+//    - g_b_cmd_ad_[Y_BODY_AXIS] * g_b_cmd_ad_[Y_BODY_AXIS]);
+//
+//  // Form a quaternion from these components (z component is 0).
+//  float temp1 = 0.5 + 0.5 * g_b_cmd_ad_z;
+//  float quat_g_b_cmd_0 = sqrt(temp1);
+//  float temp2 = 1.0 / (2.0 * quat_g_b_cmd_0);
+//  float quat_g_b_cmd_x = g_b_cmd_ad_[Y_BODY_AXIS] * temp2;
+//  float quat_g_b_cmd_y = -g_b_cmd_ad_[X_BODY_AXIS] * temp2;
+//
+//  // Determine the (approximate) heading of this command for removal (optional).
+//  float heading_from_g_b_cmd = (quat_g_b_cmd_x * quat_g_b_cmd_y) / (temp1
+//    + quat_g_b_cmd_x * quat_g_b_cmd_x - 0.5);
+//
+//  // Limit the heading error.
+//  float heading_error = FloatSLimit(WrapToPlusMinusPi(heading_cmd
+//    - HeadingAngle()), limit->heading_error);
+//
+//  // Make a second quaternion for the commanded heading minus the residual
+//  // heading from the gravity vector command (x and y components are zero).
+//  float temp = (HeadingAngle() + heading_error - heading_from_g_b_cmd) * 0.5;
+//  float quat_heading_cmd_0 = cos(temp);
+//  float quat_heading_cmd_z = sin(temp);
+//
+//  // Combine the quaternions (heading rotation first) to form the final
+//  // quaternion command.
+//  quat_cmd[0] = quat_heading_cmd_0 * quat_g_b_cmd_0;
+//  quat_cmd[1] = quat_heading_cmd_0 * quat_g_b_cmd_x - quat_heading_cmd_z
+//    * quat_g_b_cmd_y;
+//  quat_cmd[2] = quat_heading_cmd_0 * quat_g_b_cmd_y + quat_heading_cmd_z
+//    * quat_g_b_cmd_x;
+//  quat_cmd[3] = quat_heading_cmd_z * quat_g_b_cmd_0;
+//}
 
 // -----------------------------------------------------------------------------
 static void ResetModel(const float position[3], const float velocity[3],
